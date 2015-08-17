@@ -1,0 +1,146 @@
+---
+title: "Practical Machine Learning - Course Project"
+author: "Santoshkumar"
+date: "August, 2015"
+output: html_document
+---
+
+## Executive Summary:
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit a large amount of data about personal activity is collected. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. The subjects were asked to perform barbell lifts correctly and incorrectly in 5 different ways and the results recorded. The results could take 5 possible levels: A,B,C,D and E each of which mean the following:
+
+A: exactly according to the specification
+
+B: throwing the elbows to the front
+
+C: lifting the dumbbell only halfway
+
+D: lowering the dumbbell only halfway
+
+E: throwing the hips to the front
+
+
+## Analysis:
+
+### Reading in the data:
+
+First download the files from the specified web locations and save them locally to the working directory: The web URLs specified are: 
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+The files are downloaded and placed in the working directory. Now we read the csv files into R dataframe objects for further processing.
+
+```{r}
+# Read in the training data set
+myTrain = read.csv("~/R Working Directory/8CP/pml-training.csv",na.strings = c("#DIV/0!","NA",""))
+# Read in the testing data set
+myTest = read.csv("~/R Working Directory/8CP/pml-testing.csv", na.strings  = c("#DIV/0!","NA",""))
+```
+
+Now look at the dimensions of the datasets and a cursory look at the data:
+
+```{r}
+dim(myTrain)
+dim(myTest)
+str(myTrain)
+```
+
+Thus we see that we have about 160 columns with some of these columns containing majority of the values as NAs. Now we try to look at the percent of blanks or NA's in each of the columns. For this we use a simple function of mean of is.na on each of the columns.
+
+### Filtering un-necessary columns:
+
+```{r}
+na.percent = sapply(1:160, function(x) mean(is.na(myTrain[,x])))
+table(na.percent)
+```
+
+**This output is very critical. This shows that only about 60 columns have unique values and the remaining 100 columns have about 98% or above either blanks or NA's. There is not much of scope to impute the 98%+ values with the remaining available 2% of the values. Hence we ignore them for the rest of our analysis of this problem.**
+
+```{r}
+non.na = (na.percent == 0)
+```
+
+This is to assign the location of the valuable columns on to a boolean vector. We now make use of this boolean vector to extract only those columns and place them in a dataframe: Trimmed Training Set and Trimmed Testing Set.
+
+```{r}
+myTrimTrain = myTrain[,non.na]
+myTrimTest = myTest[,non.na]
+dim(myTrimTrain)
+str(myTrimTrain)
+```
+
+We are now left with a dataframe that is only of the essential 60 columns. The result above shows that the first 7 columns of the dataset we have is of no use since the actual readings start from the 8th column only. The first 7 columns contains only info regarding the serial number, user name, time stamp of the measurement etc. Hence, we can ignore them as well for our further analysis.
+
+```{r}
+myTrimTrain = myTrimTrain[,8:60]
+myTrimTest = myTrimTest[,8:60]
+```
+
+This results in the final dataset of training and testing and each of these contain only 53 columns. Now, let us do a quick check of near zero variance of the remaining 53 columns to ensure that near zero variance is false for each of these columns. Before that load in the caret package for model building
+
+```{r}
+library(caret)
+nearZeroVar(myTrimTrain, saveMetrics = TRUE)
+```
+
+### Data Partionining
+
+We now split the training set into two pieces - model training and model testing dataset. The split ratio will be 60-40. The model testing dataset will give us an estimate of the out of sample error rate.
+
+```{r}
+# Set the seed for reproducibility of results
+set.seed(12345)
+# Specify the create data partition of 60-40 ratio on the classe column
+inTrain = createDataPartition(myTrimTrain$classe, p = 0.6, list = FALSE)
+# Create model training data set
+modTrain = myTrimTrain[inTrain,]
+# Create model testing data set
+modTest = myTrimTrain[-inTrain,]
+```
+
+We now build a random forest machine learning algorithm. Though the results might not be easily interpretable as compared to that obtained from a regression model or a classification tree, the results might be pretty accurate as not only the samples are bootstrapped but also the variables at each node.
+
+### Model Building & Prediction
+
+```{r, cache = TRUE}
+# Build a randomForest training model on the dataset for model training - Sub Training
+# mod.rf = train(classe ~ . , method = "rf" , data = modTrain)
+# save(mod.rf, file="rfModel.RData")
+
+load(file="rfModel.RData", verbose = TRUE)
+
+# Predict the output of the dataset for model Testing - Sub Training
+output = predict(mod.rf, modTest[,-53])
+# Confusion Matrix - Actual vs Predicted Output
+confusionMatrix(output, modTest$classe)
+print((1-confusionMatrix(output, modTest$classe)[["overall"]][["Accuracy"]]))
+```
+
+**The confusion matrix shows that our estimate of the out of sample error to be under 1%.**
+
+### Results generation for auto-evaluation
+
+Now, predict the output for the provided test set of 20 observations. These need to be submitted as part of the evaluation. Store the results in a character vector named answers.
+
+```{r}
+answers = predict(mod.rf, myTrimTest[,-53])
+answers
+```
+
+Pass the character vector as an argument to the following function to generate files that can be uploaded for evaluation:
+
+```{r}
+# Function to generate files
+pml_write_files = function(x){
+    n = length(x)
+    for(i in 1:n){
+        filename = paste0("problem_id_",i,".txt")
+        write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+    }
+}
+
+# Function call to genreate the answer files for upload.
+pml_write_files(answers)
+```
