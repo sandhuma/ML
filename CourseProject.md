@@ -375,9 +375,10 @@ We now build a random forest machine learning algorithm. Though the results migh
 
 ```r
 # Build a randomForest training model on the dataset for model training - Sub Training
-# mod.rf = train(classe ~ . , method = "rf" , data = modTrain)
-# save(mod.rf, file="rfModel.RData")
+mod.rf = train(classe ~ . , method = "rf" , data = modTrain)
 
+# Save the model for later use
+save(mod.rf, file="rfModel.RData")
 load(file="rfModel.RData", verbose = TRUE)
 ```
 
