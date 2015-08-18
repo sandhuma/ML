@@ -523,7 +523,7 @@ nearZeroVar(myTrimTrain, saveMetrics = TRUE)
 ## classe                1.469581     0.0254816   FALSE FALSE
 </code></pre>
 
-<h3>Data Partionining</h3>
+<h3>Data Partioning</h3>
 
 <p>We now split the training set into two pieces - model training and model testing dataset. The split ratio will be 60-40. The model testing dataset will give us an estimate of the out of sample error rate.</p>
 
@@ -542,9 +542,10 @@ modTest = myTrimTrain[-inTrain,]
 <h3>Model Building &amp; Prediction</h3>
 
 <pre><code class="r"># Build a randomForest training model on the dataset for model training - Sub Training
-# mod.rf = train(classe ~ . , method = &quot;rf&quot; , data = modTrain)
-# save(mod.rf, file=&quot;rfModel.RData&quot;)
+mod.rf = train(classe ~ . , method = &quot;rf&quot; , data = modTrain)
 
+# Save the model for later use
+save(mod.rf, file=&quot;rfModel.RData&quot;)
 load(file=&quot;rfModel.RData&quot;, verbose = TRUE)
 </code></pre>
 
@@ -562,39 +563,39 @@ confusionMatrix(output, modTest$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2230    5    0    0    0
-##          B    2 1511    4    0    0
-##          C    0    2 1364    9    0
-##          D    0    0    0 1277    2
-##          E    0    0    0    0 1440
+##          A 2227   10    0    0    0
+##          B    5 1503    6    0    1
+##          C    0    5 1359   17    3
+##          D    0    0    3 1267    5
+##          E    0    0    0    2 1433
 ## 
 ## Overall Statistics
-##                                          
-##                Accuracy : 0.9969         
-##                  95% CI : (0.9955, 0.998)
-##     No Information Rate : 0.2845         
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
-##                                          
-##                   Kappa : 0.9961         
-##  Mcnemar&#39;s Test P-Value : NA             
+##                                           
+##                Accuracy : 0.9927          
+##                  95% CI : (0.9906, 0.9945)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9908          
+##  Mcnemar&#39;s Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9991   0.9954   0.9971   0.9930   0.9986
-## Specificity            0.9991   0.9991   0.9983   0.9997   1.0000
-## Pos Pred Value         0.9978   0.9960   0.9920   0.9984   1.0000
-## Neg Pred Value         0.9996   0.9989   0.9994   0.9986   0.9997
+## Sensitivity            0.9978   0.9901   0.9934   0.9852   0.9938
+## Specificity            0.9982   0.9981   0.9961   0.9988   0.9997
+## Pos Pred Value         0.9955   0.9921   0.9819   0.9937   0.9986
+## Neg Pred Value         0.9991   0.9976   0.9986   0.9971   0.9986
 ## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2842   0.1926   0.1738   0.1628   0.1835
-## Detection Prevalence   0.2849   0.1933   0.1752   0.1630   0.1835
-## Balanced Accuracy      0.9991   0.9972   0.9977   0.9963   0.9993
+## Detection Rate         0.2838   0.1916   0.1732   0.1615   0.1826
+## Detection Prevalence   0.2851   0.1931   0.1764   0.1625   0.1829
+## Balanced Accuracy      0.9980   0.9941   0.9948   0.9920   0.9967
 </code></pre>
 
 <pre><code class="r">print((1-confusionMatrix(output, modTest$classe)[[&quot;overall&quot;]][[&quot;Accuracy&quot;]]))
 </code></pre>
 
-<pre><code>## [1] 0.003058884
+<pre><code>## [1] 0.007264848
 </code></pre>
 
 <p><strong>The confusion matrix shows that our estimate of the out of sample error to be under 1%.</strong></p>

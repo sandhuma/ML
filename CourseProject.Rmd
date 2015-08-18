@@ -85,7 +85,7 @@ library(caret)
 nearZeroVar(myTrimTrain, saveMetrics = TRUE)
 ```
 
-### Data Partionining
+### Data Partioning
 
 We now split the training set into two pieces - model training and model testing dataset. The split ratio will be 60-40. The model testing dataset will give us an estimate of the out of sample error rate.
 
@@ -106,9 +106,10 @@ We now build a random forest machine learning algorithm. Though the results migh
 
 ```{r, cache = TRUE}
 # Build a randomForest training model on the dataset for model training - Sub Training
-# mod.rf = train(classe ~ . , method = "rf" , data = modTrain)
-# save(mod.rf, file="rfModel.RData")
+mod.rf = train(classe ~ . , method = "rf" , data = modTrain)
 
+# Save the model for later use
+save(mod.rf, file="rfModel.RData")
 load(file="rfModel.RData", verbose = TRUE)
 
 # Predict the output of the dataset for model Testing - Sub Training
